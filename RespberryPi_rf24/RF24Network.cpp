@@ -6,9 +6,10 @@
  version 2 as published by the Free Software Foundation.
  */
 
+#include "RF24Network.h"
 #include "RF24Network_config.h"
 #include "RF24.h"
-#include "RF24Network.h"
+#include "RF24_config.h"
 
 uint16_t RF24NetworkHeader::next_id = 1;
 
