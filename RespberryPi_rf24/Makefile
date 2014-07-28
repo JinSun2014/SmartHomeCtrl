@@ -20,7 +20,7 @@ CCFLAGS=-Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
 all: central
 
 central: main.o RF24Network.o RF24.o gpio.o spi.o compatibility.o
-	g++ ${CCFLAGS} -lcurl -o ${PROGRAM_NAME} compatibility.o gpio.o spi.o RF24.o main.o
+	g++ ${CCFLAGS} -lcurl -o ${PROGRAM_NAME} compatibility.o gpio.o spi.o RF24.o RF24Network.o main.o
 
 main.o: main.cpp
 	g++ -Wall ${CCFLAGS} -c main.cpp
