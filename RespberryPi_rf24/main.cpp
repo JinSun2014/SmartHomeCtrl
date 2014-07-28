@@ -20,8 +20,8 @@ const string API_URL    = "http://192.168.1.66:8000";
 RF24 radio(8, 25);
 RF24Network network(radio);
 
-const uint16_t this_node = 0;
-const uint16_t other_node = 1;
+const uint16_t this_node = 1;
+const uint16_t other_node = 0;
 
 struct payload_t
 {
@@ -33,23 +33,41 @@ void init()
 {
     cout << "Initializing radio chip..." << endl;
     radio.begin();
-    radio.setDataRate(RF24_250KBPS);
+    radio.setDataRate(RF24_1MBPS);
     radio.setRetries(15, 15);
     network.begin(90, this_node);
 }
 
 int main(int argc, char** argv)
 {
-    RF24NetworkHeader header;
-    payload_t payload;
+    const unsigned long interval = 2000; //ms
+    unsigned long last_sent_time = __millis();
+    unsigned long packets_sent_num = 0;
     init();
-    while(1){
+/*    while(1){
         network.update();
         while (network.available()){
             cout << "OK." << endl;
             network.read(header, &payload, sizeof(payload));
             cout << "Received packet # " << payload.counter
                 << " at " << payload.ms;
+        }
+    }
+*/
+    while(1){
+        network.update();
+        unsigned long now = __millis();
+        if (now - last_sent_time >= interval){
+            last_sent_time = now;
+            cout << "Sending...";
+            payload_t payload = {__millis(), packets_sent_num++};
+            cout << payload.ms << ' ' << payload.counter << endl;
+            RF24NetworkHeader header(other_node);
+            bool ok = network.write(header, &payload, sizeof(payload));
+            if (ok)
+                cout << "ok\n";
+            else
+                cout << "failed\n";
         }
     }
 }
