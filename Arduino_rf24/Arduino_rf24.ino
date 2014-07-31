@@ -28,7 +28,7 @@ const bool OPEN = 1;
 const bool CLOSE = 0;
 
 // Pin of Relay
-const int RELAY_PIN = 13;
+const int RELAY_PIN = 4;
 
 // Address of our node
 const uint16_t this_node = 1;
