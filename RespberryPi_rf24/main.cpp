@@ -14,7 +14,7 @@
 using namespace std;
 
 const int MAX_TRIAL = 5;
-const string COMMAND_QUEUE_PATH = "/home/pi//var/run/Command_Queue.txt";
+const string COMMAND_QUEUE_PATH = "/home/pi/var/run/Command_Queue.txt";
 const string API_URL = "http://192.168.81.237:8000";
 const int ON = 1;
 const int OFF = 0;
