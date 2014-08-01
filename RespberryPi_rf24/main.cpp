@@ -13,11 +13,11 @@
 
 using namespace std;
 
-const int MAX_TRIAL     = 5;
-const string COMMAND_QUEUE_PATH = "/var/www/smarthome/control_queue";
-const string API_URL    = "http://192.168.81.237:8000";
-const int OPEN = 1;
-const int CLOSE = 0;
+const int MAX_TRIAL = 5;
+const string COMMAND_QUEUE_PATH = "/home/pi//var/run/Command_Queue.txt";
+const string API_URL = "http://192.168.81.237:8000";
+const int ON = 1;
+const int OFF = 0;
 
 const uint16_t this_node = 0;
 const uint16_t other_node = 1;
@@ -40,8 +40,40 @@ void init()
     network.begin(90, this_node);
 }
 
-bool readCommand(const bool& a){
-    return a;
+void postReport(){
+    return;
+}
+
+bool readCommand(int& node, int& motion){
+    ifstream fin(COMMAND_QUEUE_PATH.c_str());
+    string line;
+    vector<string> queue;
+
+    if (fin.good()){
+        while(fin){
+            getline(fin, line);
+            if (line != "") queue.push_back(line);
+        }
+    }
+    fin.close();
+    if (queue.size() > 0){
+        node = queue[0][0] - '0';
+        if (queue[0][3] == 'n')
+            motion = ON;
+        else if (queue[0][3] == 'f')
+            motion = OFF;
+        else
+            return false;
+        ofstream fout(COMMAND_QUEUE_PATH.c_str(), ofstream::trunc);
+        if (fout.good()){
+            for (vector<string>::const_iterator it = queue.begin() + 1;
+                    it != queue.end(); ++it)
+                fout << *it << endl;
+        }
+        return true;
+    }
+    return false;
+
 }
 
 bool sendMsg(const uint16_t& node, int msg){
@@ -55,18 +87,12 @@ bool sendMsg(const uint16_t& node, int msg){
     return ok;
 }
 
-void postReport(){
-    return;
-}
 
 int main(int argc, char** argv)
 {
-    const unsigned long interval = 2000; //ms
-    unsigned long last_sent_time = __millis();
-    unsigned long packets_sent_num = 0;
-    bool a = false;
-
     int new_command = 0;
+    int node = -1;
+    int motion = -1;
     RF24NetworkHeader header;
     payload_t payload;
     init();
@@ -81,25 +107,19 @@ int main(int argc, char** argv)
                 << " at " << payload.time / 1000;
         }
 
-        unsigned long now = __millis();
-        if (now - last_sent_time >= interval){
-            a = !a;
-            new_command = readCommand(a);
-        }
+        new_command = readCommand(node, motion);
 
-        if (new_command != -1){
-            last_sent_time = now;
+        if (new_command){
+            new_command = -1;
             cout << "Sending...";
-            bool send = sendMsg(other_node, new_command);
+            bool send = sendMsg(node, motion);
             if (send){
                 cout << "ok\n";
                 postReport();
-                new_command = -1;
             }
             else{
                 cout << "failed\n";
                 postReport();
-                new_command = -1;
             }
         }
     }
